@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>gymw</string>
+	<string>gymw</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,6 +22,16 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Take a selfie for instant facial analysis. Photos are never saved or stored.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Access your health data to track steps, sleep, and calories for your fitness rank.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Save workout data to your health app.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app does not save photos to your library. This permission is required by iOS for camera access.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app does not access your photo library. This permission is required by iOS for camera access.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -45,15 +55,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<key>NSHealthShareUsageDescription</key>
-	<string>Access your health data to track steps, sleep, and calories for your fitness rank.</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>Save workout data to your health app.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Take a selfie for instant facial analysis. Photos are never saved or stored.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>This app does not save photos to your library. This permission is required by iOS for camera access.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app does not access your photo library. This permission is required by iOS for camera access.</string>
 </dict>
 </plist>
