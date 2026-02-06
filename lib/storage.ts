@@ -6,7 +6,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export interface Profile {
-    age: number;
+    dob?: string; // ISO Date YYYY-MM-DD
+    startDate?: string; // ISO Date YYYY-MM-DD
     weight: number;
     height: number;
     goal: 'bulk' | 'cut' | 'maintain';
@@ -15,6 +16,20 @@ export interface Profile {
     currentRank: number; // 0-100
     name?: string;
     favoriteFoods?: string[];
+    stats: {
+        str: number; // Strength - Pushups/Weights
+        agi: number; // Agility - Running/Jump Rope
+        vit: number; // Vitality - Plank/Recovery
+        per: number; // Perception/Focus - Meditation/Form
+    };
+    benchmarks?: {
+        benchPress: number; // kg
+        squat: number; // kg
+        deadlift: number; // kg
+        maxPushups: number; // reps
+        run5km: string; // "MM:SS" or minutes
+        maxBurpees: number; // reps in 1 min
+    };
 }
 
 export interface QuestTask {
@@ -34,6 +49,12 @@ export interface Quest {
     punishment: string;
     status: 'pending' | 'completed' | 'failed';
     xpReward: number;
+    statReward?: {
+        str?: number;
+        agi?: number;
+        vit?: number;
+        per?: number;
+    };
 }
 
 export interface DailyLog {

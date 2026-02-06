@@ -3,13 +3,19 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Activity, MessageSquare, Dumbbell, User as UserIcon, Zap } from "lucide-react";
+import { Activity, Dumbbell, User as UserIcon, Zap, Footprints, Flame, Moon, Send, MessageSquare, ScanFace } from "lucide-react";
 import { RankOrb } from "@/components/rank-orb";
 import { ProgressChart } from "@/components/progress-chart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Storage, type Profile, type DailyLog, type Quest } from "@/lib/storage";
 import { gymAI } from "@/lib/ai";
+import { HealthService, type HealthStats } from "@/lib/health";
+import { NotificationService } from "@/lib/notifications";
+import { analyzeInput, getRandomTip, type KnowledgeItem } from "@/lib/knowledge-base";
+import { LooksMaxxingWidget } from "@/components/looks-widget";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
 function getRankTitle(rankScore: number) {
   if (rankScore >= 90) return 'S';
@@ -35,6 +41,11 @@ export default function Dashboard() {
   const [logs, setLogs] = useState<DailyLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [sideQuest, setSideQuest] = useState<Quest | null>(null);
+  
+  // Health & Knowledge State
+  const [healthStats, setHealthStats] = useState<HealthStats | null>(null);
+  const [scannerInput, setScannerInput] = useState("");
+  const [systemMessage, setSystemMessage] = useState<{ text: string, type: 'vitality' | 'toxicity' | 'info' | 'neutral' } | null>(null);
 
   useEffect(() => {
     // Check for profile immediately
@@ -45,6 +56,21 @@ export default function Dashboard() {
     }
     setProfile(userProfile);
     setLogs(Storage.getLogs());
+
+    // Initialize HealthKit
+    const initHealth = async () => {
+        await HealthService.requestPermissions();
+        const stats = await HealthService.getTodayStats();
+        setHealthStats(stats);
+    };
+    initHealth();
+    
+    // Init Notifications
+    NotificationService.requestPermissions().then(() => {
+        NotificationService.scheduleDailyReminder();
+    });
+
+
     setLoading(false);
 
     // Random Side Quest Trigger (10% chance on load, or can be a timeout)
@@ -57,6 +83,15 @@ export default function Dashboard() {
          }
     }
 
+    // Random Tip Trigger (30% chance)
+    if (Math.random() < 0.3) {
+        setSystemMessage({
+            text: `SYSTEM TIP: ${getRandomTip()}`,
+            type: 'info'
+        });
+        setTimeout(() => setSystemMessage(null), 6000);
+    }
+
   }, [router]);
 
   const acceptSideQuest = () => {
@@ -66,19 +101,71 @@ export default function Dashboard() {
       }
   };
 
+  const handleScan = () => {
+      if (!scannerInput.trim()) return;
+
+      const result = analyzeInput(scannerInput);
+      if (result) {
+          if (result.effect === 'vitality') {
+              setSystemMessage({
+                  text: `VITALITY DETECTED: ${result.message}`,
+                  type: 'vitality'
+              });
+              // Here we could also conceptually add XP or "Health" to the profile
+          } else if (result.effect === 'toxicity') {
+              setSystemMessage({
+                  text: result.message,
+                  type: 'toxicity'
+              });
+          } else {
+               setSystemMessage({
+                  text: result.message,
+                  type: 'neutral'
+              });
+          }
+      } else {
+          // Default response for unknown items
+           setSystemMessage({
+              text: "Analyzing... Composition unknown. Proceed with caution.",
+              type: 'neutral'
+          });
+      }
+      
+      setScannerInput("");
+      setTimeout(() => setSystemMessage(null), 5000);
+  };
+
   if (loading || !profile) return <div className="min-h-screen bg-black flex items-center justify-center text-primary animate-pulse">SYSTEM LOADING...</div>;
 
   const currentRankTitle = getRankTitle(profile.currentRank);
   const rankColor = getRankColor(currentRankTitle);
-  // Calculate progress to next rank (simplified)
-  // E.g. if rank is 45 (C), and B starts at 60. Progress is (45-30)/(60-30). 
-  // For simplicity, we just use the raw 0-100 score as the fill for now, 
-  // or modulo logic if we want "levels" within ranks. 
-  // Let's just use the raw score relative to 100 for the visual orb for now.
   
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0a0a0f] to-black text-white p-4 pb-20">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-[#0a0a0f] to-black text-white p-4 pb-24 pt-[calc(env(safe-area-inset-top)+2rem)] overflow-x-hidden">
       
+      {/* System Message Toast */}
+      <AnimatePresence>
+        {systemMessage && (
+            <motion.div 
+                initial={{ opacity: 0, y: -50 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -50 }}
+                className={`fixed top-[calc(env(safe-area-inset-top)+1.5rem)] left-4 right-4 z-[60] p-4 rounded-lg border backdrop-blur-md shadow-2xl ${
+                    systemMessage.type === 'vitality' ? 'bg-green-500/10 border-green-500 text-green-400' :
+                    systemMessage.type === 'toxicity' ? 'bg-red-500/10 border-red-500 text-red-500 font-bold' :
+                    'bg-blue-500/10 border-blue-500 text-blue-400'
+                }`}
+            >
+                <div className="flex items-center gap-3">
+                    {systemMessage.type === 'vitality' && <Zap className="w-6 h-6 animate-pulse" />}
+                    {systemMessage.type === 'toxicity' && <Flame className="w-6 h-6 animate-pulse" />}
+                    {systemMessage.type === 'info' && <MessageSquare className="w-6 h-6" />}
+                    <p className="text-sm font-mono tracking-wide uppercase">{systemMessage.text}</p>
+                </div>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header className="flex justify-between items-center mb-8 pt-2">
         <div>
@@ -98,7 +185,7 @@ export default function Dashboard() {
             XP: {Math.floor(profile.currentRank * 100)} / 10000
         </div>
         
-        <RankOrb rank={currentRankTitle} progress={profile.currentRank} size={280} />
+        <RankOrb rank={currentRankTitle} progress={profile.currentRank} size={240} />
         
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -113,28 +200,83 @@ export default function Dashboard() {
         </motion.div>
       </section>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 my-8">
-        <Card className="glass-card border-none bg-zinc-900/40">
-            <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                <span className="text-zinc-400 text-xs uppercase">Recent Volume</span>
-                <span className="text-2xl font-bold text-white mt-1">
-                    {logs.length > 0 ? logs[logs.length-1].volume + 'kg' : '-'}
-                </span>
-            </CardContent>
-        </Card>
-        <Card className="glass-card border-none bg-zinc-900/40">
-             <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                <span className="text-zinc-400 text-xs uppercase">Streak</span>
-                <div className="flex items-center gap-1 mt-1">
-                     <span className="text-2xl font-bold text-orange-500">
-                         {logs.length > 0 ? '3' : '0'} {/* Mock streak for v1 */}
-                     </span>
-                     <span className="text-orange-500 text-xs">🔥</span>
-                </div>
-            </CardContent>
-        </Card>
+      {/* Scanner Input */}
+      <section className="mb-8 relative z-20">
+          <div className="flex gap-2">
+              <Input 
+                placeholder="Scan Item / Food / Habit..." 
+                className="bg-zinc-900/50 border-zinc-800 text-white placeholder:text-zinc-600 font-mono"
+                value={scannerInput}
+                onChange={(e) => setScannerInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleScan()}
+              />
+              <Button onClick={handleScan} className="bg-zinc-800 hover:bg-zinc-700">
+                  <Send className="w-4 h-4" />
+              </Button>
+          </div>
+      </section>
+
+      {/* Stats Hexagon */}
+       {profile.stats && (
+            <div className="w-full h-[200px] -mt-10 relative z-0 opacity-80">
+                 <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="70%" data={[
+                        { subject: 'STR', A: profile.stats.str, fullMark: 100 },
+                        { subject: 'AGI', A: profile.stats.agi, fullMark: 100 },
+                        { subject: 'VIT', A: profile.stats.vit, fullMark: 100 },
+                        { subject: 'PER', A: profile.stats.per, fullMark: 100 },
+                    ]}>
+                    <PolarGrid stroke="#333" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#666', fontSize: 10 }} />
+                    <Radar
+                        name="Stats"
+                        dataKey="A"
+                        stroke="#8b5cf6"
+                        fill="#8b5cf6"
+                        fillOpacity={0.4}
+                    />
+                    </RadarChart>
+                </ResponsiveContainer>
+            </div>
+      )}
+
+      {/* Health Stats Grid (Real Data) */}
+      <div className="relative my-4 z-10">
+          <div className="absolute -top-6 right-0">
+             <Button variant="ghost" size="sm" className="h-6 text-xs text-zinc-500 hover:text-white" onClick={() => {
+                 setHealthStats(null);
+                 HealthService.getTodayStats().then(setHealthStats);
+             }}>
+                 Refresh
+             </Button>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <Card className="glass-card border-none bg-zinc-900/40">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center h-24">
+                    <Footprints className="w-5 h-5 text-blue-400 mb-1" />
+                    <span className="text-xl font-bold text-white">{healthStats ? healthStats.steps.toLocaleString() : '-'}</span>
+                    <span className="text-zinc-500 text-[10px] uppercase">Steps</span>
+                </CardContent>
+            </Card>
+            <Card className="glass-card border-none bg-zinc-900/40">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center h-24">
+                    <Flame className="w-5 h-5 text-orange-400 mb-1" />
+                    <span className="text-xl font-bold text-white">{healthStats ? healthStats.calories.toLocaleString() : '-'}</span>
+                    <span className="text-zinc-500 text-[10px] uppercase">Kcal</span>
+                </CardContent>
+            </Card>
+            <Card className="glass-card border-none bg-zinc-900/40">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center h-24">
+                    <Moon className="w-5 h-5 text-purple-400 mb-1" />
+                    <span className="text-xl font-bold text-white">{healthStats ? Math.floor(healthStats.sleepMinutes / 60) + 'h' : '-'}</span>
+                    <span className="text-zinc-500 text-[10px] uppercase">Sleep</span>
+                </CardContent>
+            </Card>
+          </div>
       </div>
+
+      {/* Looks Maxxing Protocol */}
+      <LooksMaxxingWidget />
 
       {/* Action Cards */}
       <div className="space-y-4">
@@ -165,20 +307,22 @@ export default function Dashboard() {
       </div>
 
       {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-md border-t border-white/5 flex items-center justify-around z-50">
+      <nav className="fixed bottom-0 left-0 right-0 h-[calc(4rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-black/80 backdrop-blur-md border-t border-white/5 flex items-center justify-around z-50">
            <Button variant="ghost" className="flex flex-col items-center gap-1 h-full w-full rounded-none hover:bg-white/5" onClick={() => router.push('/')}>
                 <Dumbbell className="w-5 h-5 text-primary" />
                 <span className="text-[10px] text-primary">Status</span>
            </Button>
-           <Button variant="ghost" className="flex flex-col items-center gap-1 h-full w-full rounded-none hover:bg-white/5" onClick={() => router.push('/chat')}>
-                <MessageSquare className="w-5 h-5 text-zinc-400" />
-                <span className="text-[10px] text-zinc-400">Coach</span>
-           </Button>
+
            <Button variant="ghost" className="flex flex-col items-center gap-1 h-full w-full rounded-none hover:bg-white/5" onClick={() => router.push('/log')}>
                 <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center -mt-4 shadow-lg shadow-primary/40">
                     <Activity className="w-4 h-4 text-white" />
                 </div>
-                <span className="text-[10px] text-zinc-400 mt-1">Log</span>
+                <span className="text-[10px] text-zinc-400 font-mono tracking-widest mt-1">LOG</span>
+           </Button>
+
+           <Button variant="ghost" className="flex flex-col items-center gap-1 h-full w-full rounded-none hover:bg-white/5" onClick={() => router.push('/looks')}>
+                <ScanFace className="w-5 h-5 text-pink-500" />
+                <span className="text-[10px] text-pink-500 font-mono tracking-widest">FACE</span>
            </Button>
       </nav>
 

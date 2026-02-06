@@ -73,12 +73,25 @@ export default function QuestPage() {
       };
       Storage.addLog(newLog);
 
-      // Update Profile Rank
+      // Update Profile Rank & Stats
       const profile = Storage.getProfile();
       if (profile) {
           let newRank = profile.currentRank + (quest.xpReward / 100);
           if (newRank > 100) newRank = 100;
-          Storage.saveProfile({ ...profile, currentRank: newRank });
+          
+          const newStats = { ...profile.stats };
+          if (quest.statReward) {
+              if (quest.statReward.str) newStats.str = (newStats.str || 10) + quest.statReward.str;
+              if (quest.statReward.agi) newStats.agi = (newStats.agi || 10) + quest.statReward.agi;
+              if (quest.statReward.vit) newStats.vit = (newStats.vit || 10) + quest.statReward.vit;
+              if (quest.statReward.per) newStats.per = (newStats.per || 10) + quest.statReward.per;
+          }
+
+          Storage.saveProfile({ 
+              ...profile, 
+              currentRank: newRank,
+              stats: newStats
+          });
       }
 
       // Mark Quest Completed
@@ -107,7 +120,7 @@ export default function QuestPage() {
   const isPenalty = quest.type === 'PENALTY';
 
   return (
-    <div className={cn("min-h-screen p-4 pb-20 text-white transition-colors duration-500", isPenalty ? "bg-red-950/20" : "bg-black")}>
+    <div className={cn("min-h-screen p-4 pb-20 pt-[calc(env(safe-area-inset-top)+1rem)] text-white transition-colors duration-500", isPenalty ? "bg-red-950/20" : "bg-black")}>
         <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent to-black" />
         
         {/* Header */}
@@ -160,6 +173,16 @@ export default function QuestPage() {
                             </div>
                         </div>
                     ))}
+
+                    {quest.statReward && (
+                        <div className="flex gap-2 justify-center pt-2">
+                             {Object.entries(quest.statReward).map(([key, val]) => (
+                                 <div key={key} className="bg-zinc-800 px-3 py-1 rounded text-xs uppercase text-zinc-400 border border-zinc-700">
+                                     {key} +{val}
+                                 </div>
+                             ))}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 

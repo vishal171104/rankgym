@@ -172,6 +172,29 @@ export class GymAI {
             : ['Pizza', 'Burger', 'Sushi', 'Steak', 'Ice Cream'];
         const randomFood = foods[Math.floor(Math.random() * foods.length)];
 
+        // 4. Stat Rewards (Random Focus)
+        // Day of week based focus? Or random? Let's do random focus for variety
+        const focus = Math.random();
+        let statReward = {};
+        let typeName = "Balanced";
+
+        if (focus < 0.25) {
+            statReward = { str: 2 };
+            typeName = "Strength";
+            pushups += 20; // Harder
+        } else if (focus < 0.5) {
+            statReward = { agi: 2 };
+            typeName = "Agility";
+            runKm += 1;
+        } else if (focus < 0.75) {
+            statReward = { vit: 2 };
+            typeName = "Vitality";
+            squats += 20;
+        } else {
+            statReward = { str: 1, agi: 1, vit: 1 };
+            typeName = "All-Rounder";
+        }
+
         return {
             id: Date.now().toString(),
             date: new Date().toISOString().split('T')[0],
@@ -183,10 +206,11 @@ export class GymAI {
                 { name: 'Squats', target: squats, unit: 'reps', completed: false },
                 { name: 'Running', target: runKm, unit: 'km', completed: false }
             ],
-            reward: `Allowed to consume: ${randomFood}`,
+            reward: `Unknown Consumer Goods: ${randomFood}`,
             punishment: 'PENALTY ZONE: Survival Quest (4 hours)',
             status: 'pending',
-            xpReward: Math.floor(100 * scale)
+            xpReward: Math.floor(100 * scale),
+            statReward
         };
     }
 
@@ -218,6 +242,12 @@ export class GymAI {
         ];
         const randomTask = sideQuests[Math.floor(Math.random() * sideQuests.length)];
 
+        // determine stat based on task
+        let stat = 'per';
+        if (['Shadow Boxing', 'Jumping Jacks'].includes(randomTask.name)) stat = 'agi';
+        if (['Plank', 'Wall Sit'].includes(randomTask.name)) stat = 'vit';
+        if (['Stretching', 'Meditation'].includes(randomTask.name)) stat = 'per';
+
         return {
             id: `side-${Date.now()}`,
             date: new Date().toISOString().split('T')[0],
@@ -229,7 +259,8 @@ export class GymAI {
             reward: 'Instant Recovery (Small XP)',
             punishment: 'None',
             status: 'pending',
-            xpReward: 20
+            xpReward: 20,
+            statReward: { [stat]: 1 }
         };
     }
 
