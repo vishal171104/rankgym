@@ -16,9 +16,16 @@
 - **Dynamic Profile Card**: Displays your active days, age, weight, and favorite reward meals.
 
 ### 📅 **Quest System**
-- **Daily Quests**: Automatically generated fitness tasks (e.g., "Push Ups: 100 reps") to keep you active.
-- **Sudden Quests**: Random "Emergency" side quests that pop up (rare chance) offering high-risk, high-reward challenges.
-- **Penalty System**: (Planned) Consequences for missing daily logs.
+- **Daily Quests**: Mandatory fitness tasks (e.g., "100 Pushups") that must be completed to prevent rank decay or penalties.
+- **Side Missions**: Optional "Secret Quests" discovered on the dashboard for bonus XP and stat rewards.
+- **Additive Tracking**: Log reps incrementally (e.g., "Add 20 reps") with auto-calculating targets.
+- **System Verification**: Data-locking mechanism via a "DONE" button to ensure log integrity.
+- **Penalty System**: Mandatory "Survival Quests" triggered when daily objectives are missed.
+
+### ✨ **Aesthetics Protocol**
+- **LooksMaxxing Routine**: A dedicated tracker for skincare, hydration, and nutritional "glow" habits.
+- **Micro-Timers**: Built-in timers for exercises like Mewing, Posture Checks, and Neck Training.
+- **Routine Locking**: Verified completion flow for daily grooming habits.
 
 ### 🍎 **Health Integration**
 - **Apple Health Sync**: seamless integration via Capacitor Health.
@@ -71,9 +78,10 @@
     - Check the **Radar Chart** to see your stats balance.
 
 3.  **Completing Quests**:
-    - Tap "Daily Quest" or the **Log** button in the bottom nav.
-    - Check off tasks as you complete them in the gym.
-    - Confirming a log grants XP and updates your "Active Days" streak.
+    - Tap "Log" to access your daily system requirements.
+    - **Add Reps**: Click any rep-based task to add your sets incrementally (e.g., add "10" then "15").
+    - **Auto-Sync**: The system automatically checks boxes when targets are hit.
+    - **Finalize**: Tap the **DONE** button to lock the completion and claim your XP/Rewards.
 
 4.  **Edit Profile**:
     - Go to the Profile page to view your Hunter ID.

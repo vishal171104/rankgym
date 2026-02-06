@@ -40,6 +40,7 @@ export function LooksMaxxingWidget() {
     ]);
 
     const [activeItem, setActiveItem] = useState<RoutineItem | null>(null);
+    const [confirmingItem, setConfirmingItem] = useState<RoutineItem | null>(null);
     const [timer, setTimer] = useState(0);
     const [isRunning, setIsRunning] = useState(false);
 
@@ -54,14 +55,10 @@ export function LooksMaxxingWidget() {
     }, [isRunning, timer]);
 
     const handleItemClick = (item: RoutineItem) => {
-        if (item.done) {
-            // If already done, just toggle off without menu
-            toggleItem(item.id, false);
-            return;
-        }
+        if (item.done) return; // Locked
 
         if (item.category === 'food' || item.category === 'skincare') {
-            toggleItem(item.id, true);
+            setConfirmingItem(item);
         } else {
             // Open Menu for Exercises/Habits
             setActiveItem(item);
@@ -70,11 +67,12 @@ export function LooksMaxxingWidget() {
         }
     };
 
-    const toggleItem = (id: string, state: boolean) => {
+    const lockItem = (id: string) => {
         setRoutine(prev => prev.map(item => 
-            item.id === id ? { ...item, done: state } : item
+            item.id === id ? { ...item, done: true } : item
         ));
-        if (activeItem?.id === id) setActiveItem(null);
+        setActiveItem(null);
+        setConfirmingItem(null);
     };
 
     const progress = Math.round((routine.filter(i => i.done).length / routine.length) * 100);
@@ -103,10 +101,10 @@ export function LooksMaxxingWidget() {
                 {routine.map(item => (
                     <div 
                         key={item.id} 
-                        className={`flex items-center justify-between p-2 rounded-md border transition-all cursor-pointer ${
+                        className={`flex items-center justify-between p-2 rounded-md border transition-all ${
                             item.done 
-                                ? 'bg-pink-500/10 border-pink-500/30' 
-                                : 'bg-black/20 border-white/5 hover:bg-white/5'
+                                ? 'bg-pink-500/10 border-pink-500/30 opacity-60 cursor-default' 
+                                : 'bg-black/20 border-white/5 hover:bg-white/5 cursor-pointer'
                         }`}
                         onClick={() => handleItemClick(item)}
                     >
@@ -121,9 +119,25 @@ export function LooksMaxxingWidget() {
                         </div>
                         {item.done ? (
                             <Check className="w-4 h-4 text-pink-400" />
-                        ) : (item.duration ? <Timer className="w-3 h-3 text-zinc-600" /> : null)}
+                        ) : (item.duration ? <Timer className="w-3 h-3 text-zinc-600" /> : <div className="w-1 h-1 rounded-full bg-pink-500/50" />)}
                     </div>
                 ))}
+
+                {/* Confirm Overlay (Small) */}
+                <AnimatePresence>
+                    {confirmingItem && (
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                            className="absolute inset-0 bg-black/95 z-20 flex flex-col items-center justify-center p-4 rounded-lg"
+                        >
+                            <h3 className="text-sm font-bold text-white mb-4">Log {confirmingItem.label}?</h3>
+                            <div className="flex gap-2 w-full max-w-[200px]">
+                                <Button size="sm" variant="ghost" className="flex-1 text-zinc-500" onClick={() => setConfirmingItem(null)}>Cancel</Button>
+                                <Button size="sm" className="flex-1 bg-pink-600 hover:bg-pink-500" onClick={() => lockItem(confirmingItem.id)}>Lock</Button>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Timer/Detail Overlay */}
                 <AnimatePresence>
@@ -160,9 +174,9 @@ export function LooksMaxxingWidget() {
                                 </Button>
                                 <Button 
                                     className="flex-1 bg-pink-600 hover:bg-pink-500"
-                                    onClick={() => toggleItem(activeItem.id, true)}
+                                    onClick={() => lockItem(activeItem.id)}
                                 >
-                                    Finish
+                                    Confirm & Lock
                                 </Button>
                             </div>
                         </motion.div>

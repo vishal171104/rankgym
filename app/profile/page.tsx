@@ -120,7 +120,8 @@ export default function ProfilePage() {
     };
     
     Storage.saveProfile(newProfile);
-    Storage.saveQuest(null);
+    Storage.saveDailyQuest(null);
+    Storage.saveSideQuests([]);
 
     setLoading(true);
     setTimeout(() => {

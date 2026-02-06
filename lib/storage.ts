@@ -16,6 +16,7 @@ export interface Profile {
     currentRank: number; // 0-100
     name?: string;
     favoriteFoods?: string[];
+    hunterSeed?: string; // Permanent ID for facial analysis consistency
     stats: {
         str: number; // Strength - Pushups/Weights
         agi: number; // Agility - Running/Jump Rope
@@ -35,6 +36,7 @@ export interface Profile {
 export interface QuestTask {
     name: string;
     target: number;
+    current?: number; // Current progress for reps/stats
     unit: string;
     completed: boolean;
 }
@@ -76,7 +78,8 @@ const STORAGE_KEYS = {
     PROFILE: 'anti_gravity_profile',
     LOGS: 'anti_gravity_logs',
     MODEL: 'anti_gravity_model',
-    QUEST: 'anti_gravity_active_quest'
+    DAILY_QUEST: 'anti_gravity_daily_quest',
+    SIDE_QUESTS: 'anti_gravity_side_quests'
 };
 
 export const Storage = {
@@ -91,24 +94,37 @@ export const Storage = {
         localStorage.setItem(STORAGE_KEYS.PROFILE, JSON.stringify(profile));
     },
 
-    getCurrentQuest: (): Quest | null => {
+    getDailyQuest: (): Quest | null => {
         if (typeof window === 'undefined') return null;
-        const data = localStorage.getItem(STORAGE_KEYS.QUEST);
-        if (!data) return null;
-
-        const quest = JSON.parse(data);
-        // Check if quest is from a previous day and not completed -> fail it?
-        // For now just return it
-        return quest;
+        const data = localStorage.getItem(STORAGE_KEYS.DAILY_QUEST);
+        return data ? JSON.parse(data) : null;
     },
 
-    saveQuest: (quest: Quest | null) => {
+    saveDailyQuest: (quest: Quest | null) => {
         if (typeof window === 'undefined') return;
         if (quest === null) {
-            localStorage.removeItem(STORAGE_KEYS.QUEST);
+            localStorage.removeItem(STORAGE_KEYS.DAILY_QUEST);
         } else {
-            localStorage.setItem(STORAGE_KEYS.QUEST, JSON.stringify(quest));
+            localStorage.setItem(STORAGE_KEYS.DAILY_QUEST, JSON.stringify(quest));
         }
+    },
+
+    getSideQuests: (): Quest[] => {
+        if (typeof window === 'undefined') return [];
+        const data = localStorage.getItem(STORAGE_KEYS.SIDE_QUESTS);
+        return data ? JSON.parse(data) : [];
+    },
+
+    saveSideQuests: (quests: Quest[]) => {
+        if (typeof window === 'undefined') return;
+        localStorage.setItem(STORAGE_KEYS.SIDE_QUESTS, JSON.stringify(quests));
+    },
+
+    addSideQuest: (quest: Quest) => {
+        if (typeof window === 'undefined') return;
+        const quests = Storage.getSideQuests();
+        quests.push(quest);
+        localStorage.setItem(STORAGE_KEYS.SIDE_QUESTS, JSON.stringify(quests));
     },
 
     getLogs: (): DailyLog[] => {

@@ -74,9 +74,9 @@ export default function Dashboard() {
     setLoading(false);
 
     // Random Side Quest Trigger (10% chance on load, or can be a timeout)
-    const currentQuest = Storage.getCurrentQuest();
-    // Only trigger fit NO active side quest and current main quest isn't penalty
-    if (!currentQuest || currentQuest.type !== 'PENALTY') {
+    const currentDaily = Storage.getDailyQuest();
+    // Only trigger if current main quest isn't penalty
+    if (!currentDaily || currentDaily.type !== 'PENALTY') {
          if (Math.random() < 0.2) { // 20% chance on dashboard load
              const newSideQuest = gymAI.generateSideQuest();
              setSideQuest(newSideQuest);
@@ -96,7 +96,8 @@ export default function Dashboard() {
 
   const acceptSideQuest = () => {
       if (sideQuest) {
-          Storage.saveQuest(sideQuest);
+          Storage.addSideQuest(sideQuest);
+          setSideQuest(null);
           router.push('/log');
       }
   };
