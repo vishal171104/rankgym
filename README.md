@@ -138,3 +138,6 @@ Traditional fitness tracking is boring. RankGym uses the "Solo Leveling" philoso
 By combining manual lifting stats (Benchmarks) with passive health data (Steps/Sleep), it gives you a complete picture of your "Hunter" status—balancing active strength with recovery (Vitality).
 
 
+
+https://github.com/user-attachments/assets/98fe8809-54b9-43dd-b1da-3fc6bd3955b3
+
