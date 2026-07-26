@@ -18,6 +18,8 @@ export const viewport = {
   viewportFit: 'cover',
 };
 
+import { HunterErrorBoundary } from "@/components/shared/hunter-error-boundary";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} min-h-screen bg-background text-foreground antialiased`}>
-        {children}
+        <HunterErrorBoundary>
+          {children}
+        </HunterErrorBoundary>
       </body>
     </html>
   );

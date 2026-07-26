@@ -32,6 +32,15 @@
 	<string>This app does not save photos to your library. This permission is required by iOS for camera access.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app does not access your photo library. This permission is required by iOS for camera access.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Allow local network access for wireless testing and synchronization with your server.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+	</dict>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

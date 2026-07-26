@@ -79,7 +79,8 @@ const STORAGE_KEYS = {
     LOGS: 'anti_gravity_logs',
     MODEL: 'anti_gravity_model',
     DAILY_QUEST: 'anti_gravity_daily_quest',
-    SIDE_QUESTS: 'anti_gravity_side_quests'
+    SIDE_QUESTS: 'anti_gravity_side_quests',
+    AESTHETIC_PROTOCOL: 'anti_gravity_aesthetic_protocol'
 };
 
 export const Storage = {
@@ -148,6 +149,49 @@ export const Storage = {
     getModelWeights: (): string | null => {
         if (typeof window === 'undefined') return null;
         return localStorage.getItem(STORAGE_KEYS.MODEL);
+    },
+
+    getAestheticProtocol: (): { date: string, items: { id: string, done: boolean, value?: number }[] } | null => {
+        if (typeof window === 'undefined') return null;
+        const data = localStorage.getItem(STORAGE_KEYS.AESTHETIC_PROTOCOL);
+        return data ? JSON.parse(data) : null;
+    },
+
+    saveAestheticProtocol: (data: { date: string, items: { id: string, done: boolean, value?: number }[] }) => {
+        if (typeof window === 'undefined') return;
+        localStorage.setItem(STORAGE_KEYS.AESTHETIC_PROTOCOL, JSON.stringify(data));
+    },
+
+    exportUserData: (): string => {
+        if (typeof window === 'undefined') return '{}';
+        const dump = {
+            version: '1.0',
+            exportedAt: new Date().toISOString(),
+            profile: Storage.getProfile(),
+            dailyQuest: Storage.getDailyQuest(),
+            sideQuests: Storage.getSideQuests(),
+            logs: Storage.getLogs(),
+            aestheticProtocol: Storage.getAestheticProtocol(),
+        };
+        return JSON.stringify(dump, null, 2);
+    },
+
+    importUserData: (jsonString: string): boolean => {
+        if (typeof window === 'undefined') return false;
+        try {
+            const data = JSON.parse(jsonString);
+            if (data.profile) Storage.saveProfile(data.profile);
+            if (data.dailyQuest) Storage.saveDailyQuest(data.dailyQuest);
+            if (data.sideQuests) Storage.saveSideQuests(data.sideQuests);
+            if (data.logs && Array.isArray(data.logs)) {
+                localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(data.logs));
+            }
+            if (data.aestheticProtocol) Storage.saveAestheticProtocol(data.aestheticProtocol);
+            return true;
+        } catch (e) {
+            console.error("Failed to import user data:", e);
+            return false;
+        }
     },
 
     clearAll: () => {

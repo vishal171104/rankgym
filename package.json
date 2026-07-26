@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "dev": "next dev frontend",
+    "build": "next build frontend && cap sync ios",
+    "start": "next start frontend",
+    "lint": "eslint",
+    "cap:sync": "next build frontend && cap sync ios",
+    "cap:open": "cap open ios"
   },
   "dependencies": {
     "@capacitor/camera": "^8.0.0",

@@ -14,7 +14,7 @@ const rankColors: Record<string, string> = {
   D: "var(--rank-d)",
   C: "var(--rank-c)",
   B: "var(--rank-b)",
-  A: "var(--rank-a)", // Using hex for framer motion if needed, but var works in style
+  A: "var(--rank-a)",
   S: "var(--rank-s)",
 };
 
